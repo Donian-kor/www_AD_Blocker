@@ -30,7 +30,7 @@
 
 ### ZIP 배포판 (권장)
 
-1. [GitHub Release v0.36](https://github.com/Donian-kor/www_AD_Blocker/releases/tag/v0.36)에서 `www_AD_Blocker-v0.36.zip` 다운로드
+1. [GitHub Release v0.37](https://github.com/Donian-kor/www_AD_Blocker/releases/tag/v0.37)에서 `www_AD_Blocker-v0.37.zip` 다운로드
 2. 압축 해제 (`manifest.json`이 들어있는 폴더 확인)
 3. `chrome://extensions/` 접속 → **개발자 모드** ON
 4. **압축해제된 확장 프로그램을 로드합니다** → 2번 폴더 선택
