@@ -143,8 +143,9 @@
 
   // ============================================================
   // 7. 광고 차단 감지 요소 자동 제거 (간단 버전)
+  //    허용 사이트에서는 실행하지 않는다 (파일 끝 호출부 참고)
   // ============================================================
-  (function () {
+  function hideAdblockWarnings() {
     var selectorsToHide = [
       ".anti-adblock", "#anti-adblock", ".adblock-warning",
       ".adblock-detected", "#adblock-detected", ".disable-adblock",
@@ -174,12 +175,12 @@
       // document는 항상 존재하므로 이를 감시해 이후 추가되는 노드를 놓치지 않는다.
       observer.observe(document, { childList: true, subtree: true });
     } catch (e) {}
-  })();
+  }
 
   // ============================================================
   // 8. dogdrip.net 전용 지속 차단 규칙 (CSS 강제 적용)
   // ============================================================
-  (function () {
+  function hideAdSlots() {
     var css = 
       '.ddnad-wrapper, .ddnad-wrapper * { display:none !important; visibility:hidden !important; height:0 !important; overflow:hidden !important; } ' +
       'ins.adsbygoogle, ins.adsbygoogle * { display:none !important; visibility:hidden !important; height:0 !important; overflow:hidden !important; } ' +
@@ -193,5 +194,19 @@
 
     // MutationObserver만 사용하여 새로 추가되는 요소 숨김 (CPU/네트워크 부담 최소)
     // setInterval 제거 — 지속 감시는 observer가 담당
-  })();
+  }
+
+  // 허용 사이트(광고 허용)에서는 광고 요소·경고를 숨기지 않는다.
+  // 1·4·5·6(감지 무력화)은 광고를 가리지 않으므로 그대로 두고,
+  // 실제로 광고를 가리는 7·8만 건너뛴다.
+  function hideExtras() {
+    hideAdblockWarnings();
+    hideAdSlots();
+  }
+
+  if (self.YabAllowlist && self.YabAllowlist.runUnlessAllowed) {
+    self.YabAllowlist.runUnlessAllowed(hideExtras);
+  } else {
+    hideExtras();
+  }
 })();

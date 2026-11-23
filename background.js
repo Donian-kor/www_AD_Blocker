@@ -4,10 +4,12 @@ importScripts("shared/filter-converter.js");
 importScripts("shared/filter-registry.js");
 importScripts("shared/build-meta.js");
 importScripts("shared/badge-format.js");
+importScripts("shared/allowlist.js");
 importScripts("background/state.js");
 importScripts("background/main-world-scripts.js");
 importScripts("background/stats.js");
 importScripts("background/rules.js");
+importScripts("background/allowlist.js");
 importScripts("background/filter-updater.js");
 
 // === 확장 프로그램 설치 / 시작 시 ===

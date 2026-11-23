@@ -13,6 +13,8 @@
   window.__yabGeneralInstalled = true;
 
   let enabled = true;
+  // "광고 허용 사이트"에서는 마스터 토글과 상관없이 이 스크립트를 끈다.
+  let siteAllowed = false;
 
   // 숨길 광고 선택자. 광고 전용 클래스/속성만 골라 오차단을 줄인다.
   const SELECTORS = [
@@ -94,14 +96,18 @@
   }
 
   function applyEnabled(value) {
-    enabled = value !== false;
+    enabled = value !== false && !siteAllowed;
     const style = document.getElementById(STYLE_ID);
     if (style) style.disabled = !enabled;
   }
 
   // 저장된 토글 상태 로드 + 변경 감지
   try {
-    chrome.storage.local.get(["adBlockerEnabled"], (res) => {
+    chrome.storage.local.get(["adBlockerEnabled", "allowedSites"], (res) => {
+      // 허용 사이트면 광고 요소를 숨기지 않는다.
+      // (스타일은 그려지기 전에 이미 주입했으므로 여기서 끈다)
+      siteAllowed = !!(self.YabAllowlist &&
+        self.YabAllowlist.isAllowed(self.YabAllowlist.topHostname(), res.allowedSites || []));
       applyEnabled(res.adBlockerEnabled !== undefined ? res.adBlockerEnabled : true);
     });
     chrome.storage.onChanged.addListener((changes) => {

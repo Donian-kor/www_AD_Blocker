@@ -38,6 +38,15 @@ input:checked+.slider:before{transform:translateX(20px)}
 .total-row .total-number{font-size:14px;font-weight:700;color:#e94560}
 .total-row .total-hint{margin-left:auto;font-size:10px;color:#94a3b8}
 
+/* 이 사이트 광고 허용 (허용 목록) */
+.site-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;margin-bottom:12px;border:1px solid #dbe2ee;border-radius:8px;background:#fff}
+.site-row.hidden{display:none}
+.site-row.on{border-color:#16a34a}
+.site-text{min-width:0}
+.site-title{font-size:11px;font-weight:700;color:#0f172a}
+.site-host{font-size:10px;color:#64748b;word-break:break-all;margin-top:2px}
+.site-note{font-size:10px;color:#94a3b8;margin-top:2px}
+
 .actions{display:flex;gap:8px;margin-bottom:8px}
 .pick-row{margin-bottom:10px}
 .pick-row button{width:100%}
@@ -53,13 +62,25 @@ button.primary{background:#2563eb;color:white}
 <div class="header">
 <img src="icon48.png" alt="icon">
 <h1>www_AD_Blocker</h1>
-<span class="badge">v0.36</span>
+<span class="badge">v0.37</span>
 </div>
 
 <div class="toggle-row">
 <span class="toggle-status" id="toggleStatus"><span class="dot"></span><span id="toggleStatusText">광고 차단 중</span></span>
 <label class="toggle">
 <input type="checkbox" id="enabledToggle" checked>
+<span class="slider"></span>
+</label>
+</div>
+
+<div class="site-row hidden" id="siteRow">
+<div class="site-text">
+<div class="site-title">이 사이트 광고 허용</div>
+<div class="site-host" id="siteHost">-</div>
+<div class="site-note" id="siteNote"></div>
+</div>
+<label class="toggle">
+<input type="checkbox" id="siteToggle">
 <span class="slider"></span>
 </label>
 </div>
@@ -87,6 +108,7 @@ button.primary{background:#2563eb;color:white}
 광고·트래커 차단 확장 프로그램
 </div>
 
+<script src="shared/allowlist.js"></script>
 <script src="popup.js"></script>
 </body>
 </html>

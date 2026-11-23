@@ -17,15 +17,19 @@
   // 스크립트든 이 두 가지를 1줄로 읽어 확장을 특정할 수 있었다.
   // MAIN world 스크립트와의 통신이 필요 없어져(스크립틀릿 미사용) 전부 제거했다.
   let enabled = true;
+  // "광고 허용 사이트"에서는 마스터 토글과 상관없이 끈다.
+  let siteAllowed = false;
   let hideStyle = null;
 
   function applyEnabled(value) {
-    enabled = value;
+    enabled = value !== false && !siteAllowed;
     if (hideStyle) hideStyle.disabled = !enabled;
   }
 
   function loadEnabled() {
-    chrome.storage.local.get(["adBlockerEnabled"], (result) => {
+    chrome.storage.local.get(["adBlockerEnabled", "allowedSites"], (result) => {
+      siteAllowed = !!(self.YabAllowlist &&
+        self.YabAllowlist.isAllowed(self.YabAllowlist.topHostname(), result.allowedSites || []));
       applyEnabled(result.adBlockerEnabled !== undefined ? result.adBlockerEnabled : true);
     });
   }

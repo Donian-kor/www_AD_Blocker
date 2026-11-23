@@ -2,6 +2,7 @@
 import { initStats } from "./stats.js";
 import { initFiltersTab } from "./filters-tab.js";
 import { initBlockedTab } from "./blocked-tab.js";
+import { initAllowlistTab } from "./allowlist-tab.js";
 import { initBlockedLogTab } from "./blocked-log-tab.js";
 import { initLicensesTab } from "./licenses-tab.js";
 
@@ -49,6 +50,7 @@ window.addEventListener("hashchange", activateTabFromHash);
 initStats();
 initFiltersTab();
 initBlockedTab();
+initAllowlistTab();
 initBlockedLogTab();
 initLicensesTab();
 

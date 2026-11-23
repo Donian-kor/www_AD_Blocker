@@ -123,6 +123,84 @@
     }
   });
 
+  // === 이 사이트 광고 허용 (허용 목록) ===
+  // 설정 페이지의 "광고 허용 사이트" 탭과 같은 저장소(allowedSites)를 쓴다.
+  // 여기서 켜면 사이트가 기억되어, 새로고침·재시작 후에도 계속 광고가 허용된다.
+  const ALLOW = self.YabAllowlist;
+  const siteRow = document.getElementById("siteRow");
+  const siteToggle = document.getElementById("siteToggle");
+  const siteHost = document.getElementById("siteHost");
+  const siteNote = document.getElementById("siteNote");
+  let currentSite = "";
+
+  // 공용 모듈을 못 읽으면 이 영역만 감춘다 (팝업의 나머지 기능은 그대로 동작).
+  const allowReady = !!ALLOW;
+  if (!allowReady) siteRow.classList.add("hidden");
+
+  function hostOf(url) {
+    try {
+      return new URL(url).hostname;
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function refreshSiteRow() {
+    if (!allowReady || !currentSite) {
+      siteRow.classList.add("hidden");
+      return;
+    }
+    chrome.runtime.sendMessage({ type: "getAllowedSites" }, (res) => {
+      const sites = (res && res.sites) || [];
+      const allowed = ALLOW.isAllowed(currentSite, sites);
+      siteToggle.checked = allowed;
+      siteRow.classList.toggle("on", allowed);
+      if (!toggle.checked) {
+        siteNote.textContent = "광고 차단이 꺼져 있어 모든 사이트에서 광고가 보입니다.";
+      } else if (allowed) {
+        siteNote.textContent = "이 사이트에서는 광고를 차단하지 않습니다.";
+      } else {
+        siteNote.textContent = "";
+      }
+    });
+  }
+
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs[0];
+    // chrome://, 확장 스토어 등 광고 차단 대상이 아닌 페이지에서는 숨긴다.
+    if (!allowReady || !tab || !tab.url || !/^https?:/i.test(tab.url)) return;
+    currentSite = ALLOW.normalizeSite(hostOf(tab.url));
+    if (!currentSite) return;
+    siteRow.classList.remove("hidden");
+    siteHost.textContent = currentSite;
+    refreshSiteRow();
+  });
+
+  siteToggle.addEventListener("change", () => {
+    if (!allowReady || !currentSite) return;
+    const allowed = siteToggle.checked;
+    chrome.runtime.sendMessage({ type: "setSiteAllowed", site: currentSite, allowed }, (res) => {
+      if (!res || res.success === false) {
+        siteToggle.checked = !allowed;
+        alert(res && res.error === "limit"
+          ? "허용 사이트는 최대 " + res.max + "개까지 추가할 수 있습니다."
+          : "설정을 저장하지 못했습니다.");
+        return;
+      }
+      siteRow.classList.toggle("on", allowed);
+      refreshSiteRow();
+      // 이미 주입된 콘텐츠 스크립트는 새로고침해야 반영된다.
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0] && tabs[0].id !== undefined) chrome.tabs.reload(tabs[0].id);
+      });
+    });
+  });
+
+  // 설정 페이지에서 목록을 바꿔도 팝업 표시가 즉시 맞춰진다.
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes.allowedSites) refreshSiteRow();
+  });
+
   // === 실행 및 주기적 갱신 ===
   updatePageCount();
   updateTotal();

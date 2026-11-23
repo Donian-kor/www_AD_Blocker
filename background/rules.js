@@ -387,6 +387,9 @@ function applyRules(enabled) {
   // MAIN world 스크립트(youtube-main.js)도 켜짐 상태에 맞춰 등록/해제한다.
   // 정적 선언을 쓰지 않으므로 꺼짐 상태에서 페이지에 흔적을 남기지 않는다.
   if (typeof syncMainWorldScripts === "function") syncMainWorldScripts(enabled);
+  // 허용 사이트(광고 허용) 규칙도 함께 맞춘다.
+  // 꺼짐 상태에서는 막는 규칙이 없으므로 허용 규칙도 내려서 규칙 수를 아낀다.
+  if (typeof applyAllowlist === "function") applyAllowlist(enabled);
   // YouTube Studio 허용 규칙은 항상 적용 (광고 차단 대상이 아님)
   const studioAllowRule = { id: 100, priority: 100, action: { type: "allow" }, condition: { domainType: "firstParty", domains: ["studio.youtube.com"] } };
   // 항상 적용되는 허용 규칙: Studio + 유튜브 감지 신호/광고 도메인 + dogdrip 감지 우회

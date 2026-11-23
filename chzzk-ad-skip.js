@@ -13,6 +13,8 @@
   window.__yabChzzkSkipInstalled = true;
 
   let enabled = true;
+  // "광고 허용 사이트"에서는 마스터 토글과 상관없이 끈다.
+  let siteAllowed = false;
   let skippedCount = 0;
   let pollTimer = null;
   let observer = null;
@@ -66,19 +68,23 @@
 
   // 토글 상태 로드 + 변경 감지
   try {
-    chrome.storage.local.get(["adBlockerEnabled"], (res) => {
-      enabled = res.adBlockerEnabled !== false;
+    chrome.storage.local.get(["adBlockerEnabled", "allowedSites"], (res) => {
+      const allowed = !!(self.YabAllowlist &&
+        self.YabAllowlist.isAllowed(self.YabAllowlist.topHostname(), res.allowedSites || []));
+      siteAllowed = allowed;
+      enabled = !allowed && res.adBlockerEnabled !== false;
       if (enabled && document.querySelector(".ad_info_area")) startPolling();
+      else stopPolling();
     });
     chrome.storage.onChanged.addListener((changes) => {
       if (changes.adBlockerEnabled) {
-        enabled = changes.adBlockerEnabled.newValue !== false;
+        enabled = !siteAllowed && changes.adBlockerEnabled.newValue !== false;
         if (!enabled) stopPolling();
       }
     });
     chrome.runtime.onMessage.addListener((message) => {
       if (message.type === "toggle") {
-        enabled = message.enabled !== false;
+        enabled = !siteAllowed && message.enabled !== false;
         if (!enabled) stopPolling();
       }
     });

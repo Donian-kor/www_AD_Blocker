@@ -13,7 +13,10 @@ for (const group of FilterRegistry.FILTER_GROUPS) {
 }
 
 const COMMIT_ID_START = 1000;    // 업데이트 규칙 ID 대역 (기존 1~68, 100~109와 충돌 없음)
-const MAX_DYNAMIC_RULES = 30000; // Chrome 전체 동적 규칙 한도
+const DYNAMIC_RULE_LIMIT = 30000; // Chrome 전체 동적 규칙 한도
+// "광고 허용 사이트" 규칙(최대 1000개)과 내장 규칙 몫을 미리 남겨 둔다.
+// 필터 업데이트가 한도를 다 쓰면 허용 규칙을 넣을 자리가 없어 예외가 동작하지 않는다.
+const MAX_DYNAMIC_RULES = DYNAMIC_RULE_LIMIT - 1500;
 const MAX_FILTER_BYTES = 10 * 1024 * 1024; // 파일 10MB 제한 (AdGuard Base 약 7MB 대응)
 const FETCH_TIMEOUT_MS = 10000;
 const UPDATE_DEBOUNCE_MS = 10000;

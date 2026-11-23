@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "www_AD_Blocker",
-  "version": "0.36",
+  "version": "0.37",
   "description": "PC 크롬에서 웹사이트 광고와 추적기를 차단하고 통계를 확인합니다.",
   "permissions": [
     "declarativeNetRequest",
@@ -239,6 +239,7 @@
         "https://*/*"
       ],
       "js": [
+        "shared/allowlist.js",
         "anti-bypass.js"
       ],
       "run_at": "document_start",
@@ -251,6 +252,7 @@
         "https://*/*"
       ],
       "js": [
+        "shared/allowlist.js",
         "general-blocker.js"
       ],
       "run_at": "document_start",
@@ -262,6 +264,7 @@
         "*://*.youtube.com/*"
       ],
       "js": [
+        "shared/allowlist.js",
         "content.js"
       ],
       "run_at": "document_start"
@@ -282,6 +285,7 @@
         "*://chzzk.naver.com/*"
       ],
       "js": [
+        "shared/allowlist.js",
         "chzzk-ad-skip.js"
       ],
       "run_at": "document_start",
@@ -298,6 +302,7 @@
         "*://*.bzzhr.to/*"
       ],
       "js": [
+        "shared/allowlist.js",
         "filehost-blocker.js"
       ],
       "run_at": "document_idle",

@@ -20,6 +20,8 @@
   window.__yabFilehostInstalled = true;
 
   let enabled = true;
+  // "광고 허용 사이트"에서는 마스터 토글과 상관없이 끈다.
+  let siteAllowed = false;
 
   // === 광고/추적 도메인 (이들 사이트가 사용하는 광고 네트워크) ===
   // network-level DNR 차단과 별개로, 심층/리다이렉트 복구용으로 프레임·스크립트 제거에 사용
@@ -216,14 +218,17 @@
   }
 
   function applyEnabled(value) {
-    enabled = value !== false;
+    enabled = value !== false && !siteAllowed;
     const style = document.getElementById(STYLE_ID);
     if (style) style.disabled = !enabled;
   }
 
   // === 토글 연동 ===
   try {
-    chrome.storage.local.get(["adBlockerEnabled"], (res) => {
+    chrome.storage.local.get(["adBlockerEnabled", "allowedSites"], (res) => {
+      // 허용 사이트면 광고 요소를 숨기지 않는다.
+      siteAllowed = !!(self.YabAllowlist &&
+        self.YabAllowlist.isAllowed(self.YabAllowlist.topHostname(), res.allowedSites || []));
       applyEnabled(res.adBlockerEnabled !== undefined ? res.adBlockerEnabled : true);
     });
     chrome.storage.onChanged.addListener((changes) => {
