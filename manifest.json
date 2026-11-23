@@ -326,6 +326,7 @@
         "https://*/*"
       ],
       "js": [
+        "shared/block-category.js",
         "element-blocker.js"
       ],
       "run_at": "document_idle",

@@ -196,7 +196,7 @@
       }
       saveSelector(selector, (ok) => {
         showToast(ok ? "광고 요소를 차단했습니다." : "저장에 실패했습니다.");
-      });
+      }, target);
     };
     const key = (e) => {
       if (e.key === "Escape") {
@@ -251,7 +251,21 @@
     });
   }
 
-  function saveSelector(selector, done) {
+  // 수동 차단도 DOM 기록에 남긴다 (출처: manual). 원본 class/id는 저장하지 않는다.
+  function reportManualBlock(element) {
+    if (!IS_TOP_FRAME) return;
+    const kind = (self.BlockCategory && self.BlockCategory.elementKind(element)) || "other";
+    try {
+      chrome.runtime.sendMessage({
+        type: "adRemoved",
+        count: 1,
+        kinds: { [kind]: 1 },
+        source: "manual",
+      }, () => { void chrome.runtime.lastError; });
+    } catch (e) {}
+  }
+
+  function saveSelector(selector, done, element) {
     const key = siteKey();
     if (!key) {
       done(false);
@@ -260,7 +274,8 @@
     chrome.storage.local.get([STORAGE_KEY], (res) => {
       const all = res[STORAGE_KEY] || {};
       const list = Array.isArray(all[key]) ? all[key].slice() : [];
-      if (!list.includes(selector)) list.push(selector);
+      const isNew = !list.includes(selector);
+      if (isNew) list.push(selector);
       while (list.length > MAX_PER_SITE) list.shift();
       all[key] = list;
 
@@ -271,6 +286,7 @@
         }
         selectors = list;
         applySelectors();
+        if (isNew) reportManualBlock(element);
         done(true);
       });
     });
@@ -402,23 +418,12 @@
       saveSelector(selector, (ok) => {
         if (ok) {
           showToast("광고 요소를 차단했습니다.", selector);
-          if (!IS_TOP_FRAME) {
-            sendResponse({ ok: true, selector });
-            return;
-          }
-          try {
-            chrome.runtime.sendMessage({ type: "adRemoved", count: 1 }, () => {
-              void chrome.runtime.lastError;
-            });
-          } catch (e) {
-            // 통계 전송 실패는 무시
-          }
           sendResponse({ ok: true, selector });
         } else {
           showToast("차단 규칙을 저장하지 못했습니다.");
           sendResponse({ ok: false, reason: "save-failed" });
         }
-      });
+      }, blockTarget);
       return true;
     }
 

@@ -69,6 +69,7 @@ check("팝업 체인", BC.elementKind(el("", "popup-chain")), "popup");
 check("광고 슬롯", BC.elementKind(el("ad-slot", "")), "banner");
 check("정보 없는 요소는 배너 기본값", BC.elementKind(el("cts_test", "")), "banner");
 check("DOM 한글 라벨", BC.domKindOf("fakeButton").label, "가짜 다운로드 버튼");
+check("수동 차단 출처 라벨", BC.domSourceOf("manual"), "수동");
 
 const normalized = BC.normalizeKinds({ banner: 2, bad: 0, popup: 1, minus: -3 });
 check("유효한 종류만 집계", JSON.stringify(normalized), JSON.stringify({ banner: 2, popup: 1 }));

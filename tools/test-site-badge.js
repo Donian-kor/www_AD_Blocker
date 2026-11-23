@@ -107,12 +107,23 @@ const chrome = {
   },
   declarativeNetRequest: {
     onRuleMatchedDebug: { addListener(fn) { listeners.onRuleMatched = fn; } },
+    getEnabledRulesets(cb) { if (cb) cb([]); },
+    getAvailableStaticRuleCount(cb) { if (cb) cb(0); },
     updateEnabledRulesets(opts, cb) { if (cb) cb(); },
     updateDynamicRules(opts, cb) { if (cb) cb(); }
   }
 };
 
+// background.js는 importScripts로 모듈을 로드한다. Node VM에서도 같은 순서로
+// 실제 파일을 실행해 AppState·stats 등 의존성을 채운다 (빈 스텁으로 두면 실패).
 const sandbox = { chrome, URL, console, setTimeout, clearTimeout, Date, JSON, Map, Object, Number, String, Math };
+sandbox.self = sandbox;
+sandbox.importScripts = (...files) => {
+  files.forEach((file) => {
+    const code = fs.readFileSync(path.resolve(__dirname, "..", file), "utf8");
+    vm.runInContext(code, sandbox, { filename: file });
+  });
+};
 vm.createContext(sandbox);
 vm.runInContext(source, sandbox);
 
