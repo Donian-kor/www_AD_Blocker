@@ -268,16 +268,6 @@
     },
     {
       "matches": [
-        "*://*.youtube.com/*"
-      ],
-      "js": [
-        "youtube-main.js"
-      ],
-      "run_at": "document_start",
-      "world": "MAIN"
-    },
-    {
-      "matches": [
         "*://chzzk.naver.com/*"
       ],
       "js": [

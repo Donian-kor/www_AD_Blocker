@@ -117,18 +117,22 @@
     }
 
     // Shorts 광고: reel_watch_sequence / get_watch 응답의 entries[].command...adClientParams.isAd
-    const entryArrays = [];
-    if (value.reelWatchSequenceResponse && value.reelWatchSequenceResponse.entries) {
-      entryArrays.push(value.reelWatchSequenceResponse.entries);
-    }
-    if (value.entries) entryArrays.push(value.entries);
-    for (const entries of entryArrays) {
-      if (!Array.isArray(entries)) continue;
-      for (const entry of entries) {
-        const endpoint = entry && entry.command && entry.command.reelWatchEndpoint;
-        if (endpoint && endpoint.adClientParams) endpoint.adClientParams.isAd = false;
+    // ytInitialData 처럼 앱 셸 데이터에도 적용되므로, 예상 못 한 형태가 와도
+    // 예외를 페이지 쪽으로 흘리지 않도록 try/catch 로 감싼다.
+    try {
+      const entryArrays = [];
+      if (value.reelWatchSequenceResponse && value.reelWatchSequenceResponse.entries) {
+        entryArrays.push(value.reelWatchSequenceResponse.entries);
       }
-    }
+      if (value.entries) entryArrays.push(value.entries);
+      for (const entries of entryArrays) {
+        if (!Array.isArray(entries)) continue;
+        for (const entry of entries) {
+          const endpoint = entry && entry.command && entry.command.reelWatchEndpoint;
+          if (endpoint && endpoint.adClientParams) endpoint.adClientParams.isAd = false;
+        }
+      }
+    } catch (e) { /* 앱 셸 데이터는 건드리지 않는다 */ }
     return value;
   }
 
@@ -269,9 +273,16 @@
     });
   }
 
-  // === 6) 초기 플레이어/데이터 응답 후킹 ===
-  // 인라인 스크립트로 넣는 ytInitialPlayerResponse / ytInitialData 는 JSON.parse를 거치지 않는다.
+  // === 6) 초기 플레이어 응답 후킹 ===
+  // 인라인 스크립트로 넣는 ytInitialPlayerResponse 는 JSON.parse를 거치지 않는다.
   // document_start 시점에 setter를 미리 정의해 나중에 대입되는 값을 잡는다.
+  //
+  // 주의: ytInitialData 는 후킹하지 않는다.
+  //   ytInitialData 는 홈·탐색·가이드(왼쪽 사이드 메뉴) 등 앱 셸 전체를 렌더링하는
+  //   데이터다. 여기에 setter를 걸고 광고 키를 정리하면 셸 렌더링에 영향을 줄 수
+  //   있다. 광고 차단에 ytInitialData 후킹은 필요 없다(광고는 플레이어 응답에
+  //   들어 있고, 홈 화면 광고는 content.js 의 CSS가 숨긴다).
+  //   실제로 이 후킹이 왼쪽 사이드 메뉴를 사라지게 만들었다.
   function hookInitial(name) {
     try {
       let initial = window[name];
@@ -290,7 +301,6 @@
     }
   }
   hookInitial("ytInitialPlayerResponse");
-  hookInitial("ytInitialData");
 
   // === 7) 요청 스푸핑 (AdGuard filter_1 "pyv" 스크립틀릿 이식) ===
   // 지금까지의 후킹은 "응답에서 광고 데이터를 지우는" 쪽만 했다.

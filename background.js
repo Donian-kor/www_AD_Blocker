@@ -5,6 +5,7 @@ importScripts("shared/filter-registry.js");
 importScripts("shared/build-meta.js");
 importScripts("shared/badge-format.js");
 importScripts("background/state.js");
+importScripts("background/main-world-scripts.js");
 importScripts("background/stats.js");
 importScripts("background/rules.js");
 importScripts("background/filter-updater.js");
