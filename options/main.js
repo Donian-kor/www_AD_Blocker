@@ -1,4 +1,5 @@
 // options/main.js - 설정 페이지 진입점
+import "../shared/block-category.js"; // 전역 BlockCategory (차단 기록 분류용)
 import { initStats } from "./stats.js";
 import { initFiltersTab } from "./filters-tab.js";
 import { initBlockedTab } from "./blocked-tab.js";

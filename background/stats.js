@@ -202,7 +202,13 @@ chrome.declarativeNetRequest.onRuleMatchedDebug.addListener((info) => {
 
   const url = info && info.request ? info.request.url : null;
   if (url) {
-    AppState.stats.blockedLog.unshift({ url, time: Date.now() });
+    // 어떤 필터가 막았는지(rulesetId)와 주소 단서로 분류해 함께 저장한다.
+    const cls = (typeof BlockCategory !== "undefined" && BlockCategory)
+      ? BlockCategory.classifyNetwork({ url, rulesetId: info.rulesetId, ruleId: info.ruleId })
+      : { category: "unknown", source: "" };
+    AppState.stats.blockedLog.unshift({
+      url, time: Date.now(), category: cls.category, source: cls.source,
+    });
     if (AppState.stats.blockedLog.length > MAX_LOG_ENTRIES) {
       AppState.stats.blockedLog.length = MAX_LOG_ENTRIES;
     }

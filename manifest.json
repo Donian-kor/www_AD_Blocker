@@ -253,6 +253,7 @@
       ],
       "js": [
         "shared/allowlist.js",
+        "shared/block-category.js",
         "general-blocker.js"
       ],
       "run_at": "document_start",
@@ -303,6 +304,7 @@
       ],
       "js": [
         "shared/allowlist.js",
+        "shared/block-category.js",
         "filehost-blocker.js"
       ],
       "run_at": "document_idle",

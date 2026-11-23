@@ -130,9 +130,13 @@
     // dogdrip은 광고 요소를 DOM에 남겨야 서버 감지를 우회할 수 있다 (CSS 숨김만 적용)
     if (isDogdrip) return;
     let removed = 0;
+    const kinds = {};
     try {
       document.querySelectorAll(SELECTORS).forEach((el) => {
         if (el && el.parentNode) {
+          // 원본 class/id는 저장하지 않고 종류 코드만 남긴다.
+          const kind = (self.BlockCategory && self.BlockCategory.elementKind(el)) || "other";
+          kinds[kind] = (kinds[kind] || 0) + 1;
           el.remove();
           removed++;
         }
@@ -142,7 +146,7 @@
       removedCount += removed;
       if (!IS_TOP_FRAME) return; //iframe에서는 제거만 하고 보고는 하지 않음
       try {
-        chrome.runtime.sendMessage({ type: "adRemoved", count: removed }, () => {
+        chrome.runtime.sendMessage({ type: "adRemoved", count: removed, kinds, source: "general" }, () => {
           void chrome.runtime.lastError;
         });
       } catch (e) {}

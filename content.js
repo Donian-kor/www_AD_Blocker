@@ -257,7 +257,12 @@
       removedCount = 0;
       if (!IS_TOP_FRAME) return; //iframe에서는 제거만 하고 보고는 하지 않음
       try {
-        chrome.runtime.sendMessage({ type: "adRemoved", count: reportCount }, () => {
+        chrome.runtime.sendMessage({
+          type: "adRemoved",
+          count: reportCount,
+          kinds: { video: reportCount },
+          source: "video",
+        }, () => {
           // chrome.runtime.lastError 무시 (background가 종료된 경우 등)
           if (chrome.runtime.lastError) {
             // 조용히 실패 처리

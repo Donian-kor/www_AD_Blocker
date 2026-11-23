@@ -302,6 +302,24 @@
     .site-log-row:last-child { border-bottom: none; }
     .site-log-time { color: #94a3b8; white-space: nowrap; }
     .site-log-path { color: #334155; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace; }
+    .site-log-detail { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; }
+    .site-log-kinds { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+    .log-cat-badge {
+      display: inline-block; flex: none; padding: 1px 5px; border-radius: 4px;
+      border: 1px solid transparent; font-size: 9px; font-weight: 700;
+      line-height: 1.5; white-space: nowrap;
+    }
+    .log-source { flex: none; color: #94a3b8; font-size: 9px; white-space: nowrap; }
+    .site-log-summary {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+      padding: 7px 0 8px; border-bottom: 1px solid #eef2f7;
+    }
+    .site-log-summary-total { font-size: 10px; font-weight: 700; color: #0f172a; margin-right: 2px; }
+    .log-summary-chip { font-weight: 600; }
+    .log-filter {
+      padding: 6px 8px; border: 1px solid #dbe2ee; border-radius: 6px;
+      background: #fff; color: #334155; font-size: 11px;
+    }
 
     /* 출처 및 라이선스 탭 */
     .lic-table { width: 100%; border-collapse: collapse; font-size: 11px; background: #fff; }
@@ -430,14 +448,18 @@
         • <b>네트워크 차단 기록과 DOM 제거 기록을 각각 최근 5,000건까지</b> 저장합니다. 두 기록은 별도로 저장되어 서로의 용량에 영향을 주지 않습니다.<br>
         • 기록이 상한에 도달하면 <b>오래된 순서대로 자동으로 사라집니다.</b> 지금 표시되는 건수는 현재까지 쌓인 기록이며, 사용 환경에 따라 상한보다 적을 수 있습니다.<br>
         • 위의 <b>총 차단 건수</b>는 기록과 별개로 무제한 누적되며, 팝업의 「총 차단」과 같은 값입니다 (네트워크 차단 + DOM 제거).<br>
-        • DOM 제거 기록은 <b>사이트 · 제거한 광고 요소 개수 · 시간</b>만 저장하고, 요소의 HTML이나 선택자는 저장하지 않습니다.
+        • 기록에는 <b>분류(광고·개인정보 추적·악성코드 등 / 배너·팝업 등)</b>와 출처가 함께 표시됩니다. 분류는 필터 목록과 주소 단서에 기반한 추정입니다.<br>
+        • DOM 제거 기록은 <b>사이트 · 제거 종류 · 개수 · 시간</b>만 저장하고, 요소의 HTML이나 선택자는 저장하지 않습니다.
       </p>
       <div class="log-tabs">
         <button class="log-tab-btn active" data-log="network">네트워크 차단</button>
         <button class="log-tab-btn" data-log="dom">DOM 제거</button>
       </div>
       <div class="log-search">
-        <input type="search" id="logSearch" placeholder="사이트 또는 주소 검색">
+        <input type="search" id="logSearch" placeholder="사이트·주소·분류 검색">
+      </div>
+      <div class="log-search">
+        <select class="log-filter" id="logCategoryFilter" aria-label="분류 필터"></select>
       </div>
       <div id="siteLogList"></div>
     </div>

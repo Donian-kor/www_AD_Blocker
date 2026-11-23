@@ -4,6 +4,7 @@ importScripts("shared/filter-converter.js");
 importScripts("shared/filter-registry.js");
 importScripts("shared/build-meta.js");
 importScripts("shared/badge-format.js");
+importScripts("shared/block-category.js");
 importScripts("shared/allowlist.js");
 importScripts("background/state.js");
 importScripts("background/main-world-scripts.js");
@@ -42,17 +43,34 @@ chrome.storage.onChanged.addListener((changes) => {
 const pendingDomLog = new Map();
 const DOM_MERGE_MS = 400;
 
-function queueDomLog(site, count) {
+function queueDomLog(site, count, kinds, source) {
   let item = pendingDomLog.get(site);
   if (!item) {
-    item = { count: 0, timer: null };
+    item = { count: 0, kinds: {}, timer: null };
     pendingDomLog.set(site, item);
   }
   item.count += count;
+
+  // 종류는 "출처:종류" 키로 합쳐 저장한다 (예: general:banner).
+  const prefix = (source || "general") + ":";
+  const clean = (typeof BlockCategory !== "undefined" && BlockCategory)
+    ? BlockCategory.normalizeKinds(kinds)
+    : (kinds || {});
+  const keys = Object.keys(clean || {});
+  if (keys.length) {
+    keys.forEach((kind) => {
+      const key = prefix + kind;
+      item.kinds[key] = (item.kinds[key] || 0) + clean[kind];
+    });
+  } else {
+    const key = prefix + "other";
+    item.kinds[key] = (item.kinds[key] || 0) + count;
+  }
+
   if (item.timer) clearTimeout(item.timer);
   item.timer = setTimeout(() => {
     pendingDomLog.delete(site);
-    AppState.domLog.unshift({ site, count: item.count, time: Date.now() });
+    AppState.domLog.unshift({ site, count: item.count, kinds: item.kinds, time: Date.now() });
     if (AppState.domLog.length > MAX_DOM_LOG_ENTRIES) AppState.domLog.length = MAX_DOM_LOG_ENTRIES;
     saveDomLog();
   }, DOM_MERGE_MS);
@@ -88,7 +106,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const site = siteOf(pageUrl);
 
     // DOM 제거 기록 (짧은 시간 내 같은 사이트 보고는 합쳐서 한 줄로 저장)
-    queueDomLog(site || "알 수 없는 사이트", count);
+    queueDomLog(site || "알 수 없는 사이트", count, message.kinds, message.source);
     if (site) {
       if (tabId >= 0) AppState.tabSites.set(tabId, site);
       getSiteCount(site).dom += count;

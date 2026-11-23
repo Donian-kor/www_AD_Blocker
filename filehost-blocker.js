@@ -179,9 +179,12 @@
   function removeAds() {
     if (!enabled) return;
     let removed = 0;
+    const kinds = {};
     try {
       document.querySelectorAll(ALL_SELECTORS).forEach((el) => {
         if (el && el.parentNode) {
+          const kind = (self.BlockCategory && self.BlockCategory.elementKind(el)) || "other";
+          kinds[kind] = (kinds[kind] || 0) + 1;
           el.remove();
           removed++;
         }
@@ -191,6 +194,7 @@
         if (isFakeDownload(el) && !isRealDownload(el)) {
           // 광고 버튼만 제거
           if (el.parentNode) {
+            kinds.fakeButton = (kinds.fakeButton || 0) + 1;
             el.remove();
             removed++;
           }
@@ -201,7 +205,7 @@
       removedCount += removed;
       if (!IS_TOP_FRAME) return; //iframe에서는 제거만 하고 보고는 하지 않음
       try {
-        chrome.runtime.sendMessage({ type: "adRemoved", count: removed }, () => {
+        chrome.runtime.sendMessage({ type: "adRemoved", count: removed, kinds, source: "filehost" }, () => {
           void chrome.runtime.lastError;
         });
       } catch (e) {}
