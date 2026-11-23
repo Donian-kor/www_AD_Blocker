@@ -231,6 +231,28 @@ function hookableCallback(collect) {
   const other = new windowObj.Request("/api/other", { body: otherBody });
   check("youtubei 아닌 요청은 그대로", other.init.body, otherBody);
 
+  // 14-1) 가이드(browse) 요청은 params 를 절대 건드리지 않아야 한다 — 회귀 방지
+  //   adSignalsInfo 는 일반 요청에도 널리 들어 있다. 예전에는 이 키만 보고
+  //   params 를 플레이어 값(eAFgAQ)으로 덮어써 /youtubei/v1/guide 가
+  //   400 INVALID_ARGUMENT 가 되고 왼쪽 사이드 메뉴가 통째로 사라졌다.
+  const guideBody = '{"context":{"client":{"clientName":"WEB"}},"browseId":"FEguide",' +
+    '"params":"GUIDE_PARAMS","adSignalsInfo":{"params":[{"key":"a","value":"b"}]}}';
+  const guideReq = new windowObj.Request("/youtubei/v1/guide", { body: guideBody });
+  check("guide 요청 params 유지", guideReq.init.body, guideBody);
+  const guideEncoded = new FakeTextEncoder().encode(guideBody);
+  check("guide 요청 TextEncoder 경로 params 유지", guideEncoded, guideBody);
+  const guideXhr = new FakeXHR();
+  guideXhr.send(guideBody);
+  check("guide 요청 XHR 경로 params 유지", guideXhr.body, guideBody);
+  const guideStringified = JSON.stringify({
+    context: { client: { clientName: "WEB" } },
+    browseId: "FEguide",
+    params: "GUIDE_PARAMS",
+    adSignalsInfo: { params: [] }
+  });
+  check("guide 요청 JSON.stringify 경로 params 유지",
+    JSON.parse(guideStringified).params, "GUIDE_PARAMS");
+
   // 15) TextEncoder 경로도 같은 패치를 하는지
   const encoded = new FakeTextEncoder().encode(playerBody);
   check("TextEncoder 경로 params 위조", /"params":"eAFgAQ"/.test(encoded), true);

@@ -326,9 +326,20 @@
     if (spoofIndex < SPOOF_PARAMS.length - 1) spoofIndex++;
   }
 
+  // 위조 대상은 "플레이어 요청" 뿐이다.
+  // 플레이어 요청만 playbackContext(또는 playerRequest)를 가진다.
+  // browse / guide / home 등 앱 셸 요청에도 context.client 와 adSignalsInfo 가 들어
+  // 있으므로, 그것만 보고 params 를 바꾸면 안 된다.
+  // (실제 사고: /youtubei/v1/guide 의 params 를 플레이어 값 "eAFgAQ" 로 덮어써
+  //  400 INVALID_ARGUMENT 가 났고, 왼쪽 사이드 메뉴가 통째로 사라졌다)
+  function isPlayerRequest(obj) {
+    return !!(obj && typeof obj === "object" && obj.context && obj.context.client &&
+      (obj.playbackContext || obj.playerRequest));
+  }
+
   function patchPlayerRequest(obj) {
     try {
-      if (!obj || typeof obj !== "object" || !obj.context || !obj.context.client) return obj;
+      if (!isPlayerRequest(obj)) return obj;
       if (isSpoofSkipped()) return obj;
       if (obj.context.client.clientScreen === "CHANNEL") return obj;
 
@@ -353,10 +364,12 @@
 
   function patchBodyText(text) {
     if (typeof text !== "string") return text;
-    if (text.indexOf('"contentPlaybackContext"') === -1 && text.indexOf('"adSignalsInfo"') === -1) return text;
+    // 플레이어 요청에만 있는 키로 먼저 걸러낸다.
+    // adSignalsInfo 는 일반 요청에도 널리 들어가므로 판별 기준으로 쓰면 안 된다.
+    if (text.indexOf('"playbackContext"') === -1 && text.indexOf('"playerRequest"') === -1) return text;
     try {
       const obj = JSON.parse(text);
-      if (!obj || !obj.context || !obj.context.client) return text;
+      if (!isPlayerRequest(obj)) return text;
       return JSON.stringify(patchPlayerRequest(obj));
     } catch (e) { return text; }
   }
@@ -366,8 +379,8 @@
     apply(target, thisArg, args) {
       try {
         const v = args[0];
-        if (enabled && v && typeof v === "object" && v.context && v.context.client &&
-            (v.playbackContext || v.playerRequest || v.adSignalsInfo)) {
+        // adSignalsInfo 는 일반 요청에도 있으므로 조건에서 제외한다.
+        if (enabled && isPlayerRequest(v)) {
           args[0] = patchPlayerRequest(v);
         }
       } catch (e) { /* 무시 */ }
